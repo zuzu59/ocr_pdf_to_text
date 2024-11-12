@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #Fait un OCR sur tous les fichiers pdf d'un dossier
-#zf241112.1502
+#zf241112.1559
 
 # Vérifiez si les outils nécessaires sont installés
 if ! command -v pdftoppm &> /dev/null || ! command -v tesseract &> /dev/null; then
@@ -10,13 +10,14 @@ if ! command -v pdftoppm &> /dev/null || ! command -v tesseract &> /dev/null; th
 fi
 
 # Dossier contenant les fichiers PDF
-PDF_DIR="~/DATA/pdf/pdf_avant_1996"
+PDF_DIR="$HOME/DATA/pdf/pdf_avant_1996"
+echo $PDF_DIR
 
 # Dossier pour stocker les images temporaires
-IMG_DIR="~/DATA/pdf/temp_images"
+IMG_DIR="$HOME/DATA/pdf/temp_images"
 
 # Dossier pour stocker les fichiers texte OCR
-OUTPUT_DIR="~/DATA/pdf/ocr_output"
+OUTPUT_DIR="$HOME/DATA/pdf/ocr_output"
 
 # Créez les dossiers nécessaires
 echo "Crée les dossiers"
@@ -26,9 +27,10 @@ mkdir -p "$OUTPUT_DIR"
 # Boucle sur tous les fichiers PDF dans le dossier spécifié
 echo "Boucle sur tous les pdf trouvés"
 for pdf in "$PDF_DIR"/*.pdf; do
+    echo $pdf
     if [ -f "$pdf" ]; then
         # Nom du fichier PDF sans l'extension
-        base_name=$(basename "$pdf" .pdf)
+        base_name=$(basename "$pdf")
 
 	echo $base_name
 
@@ -38,20 +40,26 @@ for pdf in "$PDF_DIR"/*.pdf; do
         # Effectuer l'OCR sur chaque image générée
         for img in "$IMG_DIR/$base_name"-*.png; do
             if [ -f "$img" ]; then
-		echo $img
-                tesseract "$img" "$OUTPUT_DIR/$base_name" -l eng --psm 6
+
+		echo "On tourne l'ocr"
+		echo "input: "$img
+		echo "output: ""$OUTPUT_DIR/$base_name"
+		echo "output2: ""${img%.*}"
+
+#                tesseract "$img" "$OUTPUT_DIR/$base_name" -l fra --psm 6
+#                tesseract "$img" "$OUTPUT_DIR/$img" -l fra
+		tesseract "$img" "${img%.*}" -l fra
             fi
         done
 
         # Combiner tous les fichiers texte en un seul fichier
-        cat "$OUTPUT_DIR/$base_name"-*.txt > "$OUTPUT_DIR/$base_name.txt"
+#        cat "$OUTPUT_DIR/$base_name"-*.txt > "$OUTPUT_DIR/$base_name.txt"
+        cat "$IMG_DIR/$base_name"-*.txt > "$OUTPUT_DIR/$base_name.txt"
 
-        # Supprimer les fichiers texte temporaires
-        rm "$OUTPUT_DIR/$base_name"-*.txt
+        # Supprimer les fichiers temporaires
+        rm $IMG_DIR/*
+
     fi
 done
-
-# Supprimer les images temporaires
-rm -rf "$IMG_DIR"
 
 echo "L'OCR est terminé. Les fichiers texte sont dans le dossier $OUTPUT_DIR."
